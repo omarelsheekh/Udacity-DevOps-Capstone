@@ -1,6 +1,6 @@
 ---
 
-- name: "app deployment playbook." 
+- name: "run server." 
   hosts: server
   user: ubuntu
   gather_facts: false

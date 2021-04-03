@@ -71,7 +71,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: cytopia/ansible
+      - image: python
     environment:
       ANSIBLE_HOST_KEY_CHECKING: False
     steps:
@@ -81,6 +81,9 @@ jobs:
             - "8c:12:f9:c8:21:1d:5e:82:5e:bc:ad:bf:2f:3c:98:b1"
       - restore_cache:
           keys: ["inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}"]
+      - run:
+          name: install dependancies
+          command: pip install ansible awscli
       - when:
           condition: true
             # you should remove the infra_exists env var to not_exist to create the infra
@@ -92,7 +95,6 @@ jobs:
                 name: deploy k8s cluster
                 working_directory: .circleci/ansible/
                 command: |
-                  cat inventory.txt
                   ansible-playbook -i inventory.txt deploy-cluster.yml 
             - destroy-environment:
                 stacks-ID: '1'
@@ -100,7 +102,6 @@ jobs:
           name: run server
           working_directory: .circleci/ansible/
           command: |
-            cat inventory.txt
             ansible-playbook -i inventory.txt run-server.yml   
 
 workflows:

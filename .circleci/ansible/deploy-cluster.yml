@@ -1,6 +1,6 @@
 ---
 
-- name: "configuration play." 
+- name: "deploy cluster." 
   hosts: server
   user: ubuntu
   gather_facts: false
