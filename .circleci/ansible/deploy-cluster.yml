@@ -4,6 +4,6 @@
   hosts: server
   user: ubuntu
   gather_facts: false
-  become: false
+  become: true
   roles:
     - say-hi

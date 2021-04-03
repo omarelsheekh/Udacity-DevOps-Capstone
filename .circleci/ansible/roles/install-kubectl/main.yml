@@ -1,0 +1,29 @@
+---
+
+- name: update cash
+  apt:
+    update_cache: yes
+
+- name: Install some packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https 
+    - ca-certificates 
+    - curl 
+
+- name: Download the Google Cloud public signing key
+  shell: sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: Add the Kubernetes apt repository
+  shell:  echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+- name: Install kubectl
+  apt:
+    name: kubectl
+    state: present
+    update_cache: yes
+
+- name: install helm
+  shell: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
