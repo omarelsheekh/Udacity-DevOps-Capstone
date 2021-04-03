@@ -108,13 +108,13 @@ jobs:
 workflows:
   default:
     jobs:
-      - linting-dockerfile
-      - upload-image:
-          requires: [linting-dockerfile]
-          context:
-            - DOCKERHUB
+      # - linting-dockerfile
+      # - upload-image:
+      #     requires: [linting-dockerfile]
+      #     context:
+      #       - DOCKERHUB
       - deploy-infrastructure:
-          requires: [upload-image]
+          # requires: [upload-image]
           context:
             - AWS
       - configure-infrastructure:
