@@ -1,0 +1,38 @@
+Description: >
+  UdaCapstone server stack.
+Parameters:
+  ID:
+    Description: Unique identifier.
+    Type: String
+
+Resources:
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub UdaCapstone-${ID}
+      GroupDescription: Allow ports 22,80 and 443 .
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.medium
+      SecurityGroups:
+        - Ref: InstanceSecurityGroup
+      KeyName: udacity-aws
+      ImageId: ami-0928f4202481dfdf6 
+      Tags:
+        - Key: Name
+          Value: !Sub server-${ID}

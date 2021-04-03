@@ -1,4 +1,18 @@
 version: 2.1
+commands:
+  destroy-environment:
+    description: Destroy cloudformation stacks given a workflow ID.
+    parameters:
+      stacks-ID:
+        type: string
+    steps:
+      - run:
+          name: Destroy server
+          when: on_fail
+          command: |
+            aws cloudformation delete-stack \
+              --stack-name server-stack-<< parameters.stacks-ID >>
+      
 jobs:
   linting-dockerfile:
     machine: true
@@ -22,6 +36,32 @@ jobs:
           name: push docker image
           command: docker push $DOCKERHUB_USERNAME/capstone
 
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Ensure server infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/cloudformation/server.yml \
+              --stack-name "server-stack-$CIRCLE_WORKFLOW_ID" \
+              --parameter-overrides ID=$CIRCLE_WORKFLOW_ID  
+      - run:
+          name: Add server ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=server-$CIRCLE_WORKFLOW_ID" \
+              --query 'Reservations[*].Instances[*].PublicDnsName' \
+              --output text >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+      - save_cache:
+          paths: [".circleci/ansible/inventory.txt"]
+          key: inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+      - destroy-environment:
+          stacks-ID: $CIRCLE_WORKFLOW_ID
+
 workflows:
   default:
     jobs:
@@ -30,3 +70,7 @@ workflows:
           requires: [linting-dockerfile]
           context:
             - DOCKERHUB
+      - deploy-infrastructure:
+          requires: [upload-image]
+          context:
+            - AWS
