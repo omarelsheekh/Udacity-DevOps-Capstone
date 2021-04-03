@@ -42,11 +42,11 @@ jobs:
     steps:
       - checkout
       - when:
-          condition:
+          condition: '{{ .Environment.infra_exists }}'
             # you should remove the infra_exists env var to not_exist to create the infra
             # otherwise it will skip this step
             # if you have existance infra you should set server_ip env var
-            not: '{{ .Environment.infra_exists }}'
+            # not: '{{ .Environment.infra_exists }}'
           steps:
             - run:
                 name: Ensure server infrastructure exists
