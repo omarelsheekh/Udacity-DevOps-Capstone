@@ -1,0 +1,28 @@
+version: 2
+jobs:
+  linting-dockerfile:
+    docker:
+      - image: hadolint/hadolint
+    steps:
+      - checkout
+      - linting:
+          name: linting docker
+          command: hadolint Dockerfile
+
+  upload-image:
+    docker:
+      - image: docker
+    steps:
+      - checkout
+      - login:
+          name: login to docker hub
+          command: docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+      - build-image:
+          name: build docker image
+          command: |
+            mkdir /code
+            cp index.html /code
+            docker build -t $DOCKERHUB_USERNAME/capstone /code
+      - push-image:
+          name: push docker image
+          command: docker push $DOCKERHUB_USERNAME/capstone
