@@ -56,19 +56,14 @@ jobs:
                     --stack-name "server-stack-0" \
                     --parameter-overrides ID=0  
             - run:
-                name: Add server ip to env var
+                name: Add back-end ip to ansible inventory
                 command: |
-                  export server_ip=`aws ec2 describe-instances \
+                  aws ec2 describe-instances \
                     --filters "Name=tag:Name,Values=server-0" \
-                    --query 'Reservations[*].Instances[*].PublicDnsName' --output text`
-                  echo "export server_ip=${server_ip}" >> $BASH_ENV
+                    --query 'Reservations[*].Instances[*].PublicDnsName' \
+                    --output text >> .circleci/ansible/inventory.txt
             - destroy-environment:
                 stacks-ID: '0'
-      - run:
-          name: export server ip from env var to inventory file
-          command: |
-            echo "$server_ip" >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt
       - save_cache:
           paths: [".circleci/ansible/inventory.txt"]
           key: inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}
