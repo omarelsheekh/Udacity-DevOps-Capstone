@@ -67,7 +67,7 @@ jobs:
       - run:
           name: export server ip from env var to inventory file
           command: |
-            echo $server_ip >> .circleci/ansible/inventory.txt
+            echo "$server_ip" >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
       - save_cache:
           paths: [".circleci/ansible/inventory.txt"]
