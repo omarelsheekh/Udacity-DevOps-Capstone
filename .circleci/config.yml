@@ -48,16 +48,18 @@ jobs:
             # if you have existance infra you should set server_ip env var
             # not: '{{ .Environment.infra_exists }}'
           steps:
-            - run:
-                name: Ensure server infrastructure exists
-                command: |
-                  aws cloudformation deploy \
-                    --template-file .circleci/cloudformation/server.yml \
-                    --stack-name "server-stack-0" \
-                    --parameter-overrides ID=0  
+            # - run:
+            #     name: Ensure server infrastructure exists
+            #     command: |
+            #       aws cloudformation deploy \
+            #         --template-file .circleci/cloudformation/server.yml \
+            #         --stack-name "server-stack-0" \
+            #         --parameter-overrides ID=0  
             - run:
                 name: Add back-end ip to ansible inventory
                 command: |
+                  cat .circleci/ansible/inventory.txt
+                  echo '==========================='
                   aws ec2 describe-instances \
                     --filters "Name=tag:Name,Values=server-0" \
                     --query 'Reservations[*].Instances[*].PublicDnsName' \
