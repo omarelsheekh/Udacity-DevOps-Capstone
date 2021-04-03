@@ -117,3 +117,5 @@ workflows:
           requires: [upload-image]
           context:
             - AWS
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
