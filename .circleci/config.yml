@@ -26,3 +26,9 @@ jobs:
       - push-image:
           name: push docker image
           command: docker push $DOCKERHUB_USERNAME/capstone
+workflows:
+  default:
+    jobs:
+      - linting-dockerfile
+      - upload-image:
+          requires: [linting-dockerfile]
