@@ -48,25 +48,23 @@ jobs:
             # if you have existance infra you should set server_ip env var
             # not: '{{ .Environment.infra_exists }}'
           steps:
-            # - run:
-            #     name: Ensure server infrastructure exists
-            #     command: |
-            #       aws cloudformation deploy \
-            #         --template-file .circleci/cloudformation/server.yml \
-            #         --stack-name "server-stack-0" \
-            #         --parameter-overrides ID=0  
+            - run:
+                name: Ensure server infrastructure exists
+                command: |
+                  aws cloudformation deploy \
+                    --template-file .circleci/cloudformation/server.yml \
+                    --stack-name "server-stack-1" \
+                    --parameter-overrides ID=1  
             - run:
                 name: Add back-end ip to ansible inventory
                 command: |
-                  cat .circleci/ansible/inventory.txt
-                  echo '==========================='
                   aws ec2 describe-instances \
-                    --filters "Name=tag:Name,Values=server-0" \
+                    --filters "Name=tag:Name,Values=server-1" \
                     --query 'Reservations[*].Instances[*].PublicDnsName' \
                     --output text >> .circleci/ansible/inventory.txt
                   cat .circleci/ansible/inventory.txt
             - destroy-environment:
-                stacks-ID: '0'
+                stacks-ID: '1'
       - save_cache:
           paths: [".circleci/ansible/inventory.txt"]
           key: inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -94,10 +92,9 @@ jobs:
                 name: deploy k8s cluster
                 working_directory: .circleci/ansible/
                 command: |
-                  cat inventory.txt
                   ansible-playbook -i inventory.txt deploy-cluster.yml 
             - destroy-environment:
-                stacks-ID: '0'
+                stacks-ID: '1'
       - run:
           name: run server
           working_directory: .circleci/ansible/
