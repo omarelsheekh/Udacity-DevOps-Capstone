@@ -2,12 +2,12 @@ version: 2.1
 jobs:
   linting-dockerfile:
     docker:
-      - image: hadolint/hadolint
+      - image: docker
     steps:
       - checkout
       - run:
-          name: linting docker
-          command: hadolint Dockerfile
+          name: linting dockerfile
+          command: docker run --rm -i hadolint/hadolint < Dockerfile
 
   upload-image:
     docker:
