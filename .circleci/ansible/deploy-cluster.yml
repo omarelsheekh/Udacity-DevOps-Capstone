@@ -6,4 +6,6 @@
   gather_facts: false
   become: true
   roles:
-    - say-hi
+    - install-docker
+    - install-minikube
+    - install-kubectl
