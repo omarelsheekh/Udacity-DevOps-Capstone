@@ -42,7 +42,7 @@ jobs:
     steps:
       - checkout
       - when:
-          condition: {{ .Environment.infra_exists }}
+          condition: true
             # you should remove the infra_exists env var to not_exist to create the infra
             # otherwise it will skip this step
             # if you have existance infra you should set server_ip env var
@@ -86,11 +86,11 @@ jobs:
       - restore_cache:
           keys: ["inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}"]
       - when:
-          condition:
+          condition: true
             # you should remove the infra_exists env var to not_exist to create the infra
             # otherwise it will skip this step
             # if you have existance infra you should set server_ip env var
-            not: '{{ .Environment.infra_exists }}'
+            # not: '{{ .Environment.infra_exists }}'
           steps:
             - run:
                 name: deploy k8s cluster
