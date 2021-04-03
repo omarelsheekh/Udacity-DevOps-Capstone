@@ -1,31 +1,19 @@
 version: 2.1
 jobs:
   linting-dockerfile:
-    docker:
-      - image: docker
+    machine: true
     steps:
       - checkout
-      - run:
-          name: linting dockerfile
-          command: docker run --rm -i hadolint/hadolint < Dockerfile
+      - run: docker run --rm -i hadolint/hadolint < Dockerfile
 
   upload-image:
-    docker:
-      - image: docker
+    machine: true
     steps:
       - checkout
-      - run:
-          name: login to docker hub
-          command: docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
-      - run:
-          name: build docker image
-          command: |
-            mkdir /code
-            cp index.html /code
-            docker build -t $DOCKERHUB_USERNAME/capstone /code
-      - run:
-          name: push docker image
-          command: docker push $DOCKERHUB_USERNAME/capstone
+      - run: echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+      - run: docker build -t $DOCKERHUB_USERNAME/capstone .
+      - run: docker push $DOCKERHUB_USERNAME/capstone
+
 workflows:
   default:
     jobs:
