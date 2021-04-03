@@ -41,26 +41,69 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - when:
+          condition:
+            # you should set the infra_exists env var to not_exist to create the infra
+            # otherwise it will skip this step
+            # if you have existance infra you should set server_ip env var
+            equal: [not_exist , {{ .Environment.infra_exists }} ]
+          steps:
+            - run:
+                name: Ensure server infrastructure exists
+                command: |
+                  aws cloudformation deploy \
+                    --template-file .circleci/cloudformation/server.yml \
+                    --stack-name "server-stack-0" \
+                    --parameter-overrides ID=0  
+            - run:
+                name: Add server ip to env var
+                command: |
+                  export server_ip=`aws ec2 describe-instances \
+                    --filters "Name=tag:Name,Values=server-0" \
+                    --query 'Reservations[*].Instances[*].PublicDnsName' --output text`
+                  echo "export server_ip=${server_ip}" >> $BASH_ENV
+            - destroy-environment:
+                stacks-ID: '0'
       - run:
-          name: Ensure server infrastructure exists
+          name: export server ip from env var to inventory file
           command: |
-            aws cloudformation deploy \
-              --template-file .circleci/cloudformation/server.yml \
-              --stack-name "server-stack-$CIRCLE_WORKFLOW_ID" \
-              --parameter-overrides ID=$CIRCLE_WORKFLOW_ID  
-      - run:
-          name: Add server ip to ansible inventory
-          command: |
-            aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=server-$CIRCLE_WORKFLOW_ID" \
-              --query 'Reservations[*].Instances[*].PublicDnsName' \
-              --output text >> .circleci/ansible/inventory.txt
+            echo $server_ip >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
       - save_cache:
           paths: [".circleci/ansible/inventory.txt"]
           key: inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-      - destroy-environment:
-          stacks-ID: $CIRCLE_WORKFLOW_ID
+
+  configure-infrastructure:
+    docker:
+      - image: cytopia/ansible
+    environment:
+      ANSIBLE_HOST_KEY_CHECKING: False
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: 
+            - "8c:12:f9:c8:21:1d:5e:82:5e:bc:ad:bf:2f:3c:98:b1"
+      - restore_cache:
+          keys: ["inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}"]
+      - when:
+          condition:
+            # you should set the infra_exists env var to not_exist to create the infra
+            # otherwise it will skip this step
+            # if you have existance infra you should set server_ip env var
+            equal: [not_exist , {{ .Environment.infra_exists }} ]
+          steps:
+            - run:
+                name: deploy k8s cluster
+                working_directory: .circleci/ansible/
+                command: |
+                  ansible-playbook -i inventory.txt deploy-cluster.yml 
+            - destroy-environment:
+                stacks-ID: '0'
+      - run:
+          name: run server
+          working_directory: .circleci/ansible/
+          command: |
+            ansible-playbook -i inventory.txt run-server.yml   
 
 workflows:
   default:

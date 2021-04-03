@@ -1,0 +1,9 @@
+---
+
+- name: "app deployment playbook." 
+  hosts: server
+  user: ubuntu
+  gather_facts: false
+  become: false
+  roles:
+    - say-hi
