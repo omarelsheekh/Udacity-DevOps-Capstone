@@ -5,7 +5,7 @@ jobs:
       - image: hadolint/hadolint
     steps:
       - checkout
-      - linting:
+      - run:
           name: linting docker
           command: hadolint Dockerfile
 
@@ -14,16 +14,16 @@ jobs:
       - image: docker
     steps:
       - checkout
-      - login:
+      - run:
           name: login to docker hub
           command: docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
-      - build-image:
+      - run:
           name: build docker image
           command: |
             mkdir /code
             cp index.html /code
             docker build -t $DOCKERHUB_USERNAME/capstone /code
-      - push-image:
+      - run:
           name: push docker image
           command: docker push $DOCKERHUB_USERNAME/capstone
 workflows:
