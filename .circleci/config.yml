@@ -62,6 +62,7 @@ jobs:
                     --filters "Name=tag:Name,Values=server-0" \
                     --query 'Reservations[*].Instances[*].PublicDnsName' \
                     --output text >> .circleci/ansible/inventory.txt
+                  cat .circleci/ansible/inventory.txt
             - destroy-environment:
                 stacks-ID: '0'
       - save_cache:
@@ -91,6 +92,7 @@ jobs:
                 name: deploy k8s cluster
                 working_directory: .circleci/ansible/
                 command: |
+                  cat inventory.txt
                   ansible-playbook -i inventory.txt deploy-cluster.yml 
             - destroy-environment:
                 stacks-ID: '0'
