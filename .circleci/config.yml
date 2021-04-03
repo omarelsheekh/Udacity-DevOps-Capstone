@@ -42,7 +42,7 @@ jobs:
     steps:
       - checkout
       - when:
-          condition: '{{ .Environment.infra_exists }}'
+          condition: {{ .Environment.infra_exists }}
             # you should remove the infra_exists env var to not_exist to create the infra
             # otherwise it will skip this step
             # if you have existance infra you should set server_ip env var
