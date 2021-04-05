@@ -48,23 +48,23 @@ jobs:
             # if you have existance infra you should set server_ip env var
             # not: '{{ .Environment.infra_exists }}'
           steps:
-            # - run:
-            #     name: Ensure server infrastructure exists
-            #     command: |
-            #       aws cloudformation deploy \
-            #         --template-file .circleci/cloudformation/server.yml \
-            #         --stack-name "server-stack-1" \
-            #         --parameter-overrides ID=1  
+            - run:
+                name: Ensure server infrastructure exists
+                command: |
+                  aws cloudformation deploy \
+                    --template-file .circleci/cloudformation/server.yml \
+                    --stack-name "server-stack-{{ .Environment.CIRCLE_WORKFLOW_ID }}" \
+                    --parameter-overrides ID={{ .Environment.CIRCLE_WORKFLOW_ID }}  
             - run:
                 name: Add back-end ip to ansible inventory
                 command: |
                   aws ec2 describe-instances \
-                    --filters "Name=tag:Name,Values=server-1" \
+                    --filters "Name=tag:Name,Values=server-{{ .Environment.CIRCLE_WORKFLOW_ID }}" \
                     --query 'Reservations[*].Instances[*].PublicDnsName' \
                     --output text >> .circleci/ansible/inventory.txt
                   cat .circleci/ansible/inventory.txt
             - destroy-environment:
-                stacks-ID: '1'
+                stacks-ID: '{{ .Environment.CIRCLE_WORKFLOW_ID }}'
       - save_cache:
           paths: [".circleci/ansible/inventory.txt"]
           key: inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -83,7 +83,7 @@ jobs:
           keys: ["inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}"]
       - run:
           name: install dependancies
-          command: pip install ansible awscli
+          command: pip install ansible
       - when:
           condition: true
             # you should remove the infra_exists env var to not_exist to create the infra
@@ -97,7 +97,7 @@ jobs:
                 command: |
                   ansible-playbook -i inventory.txt deploy-cluster.yml 
             - destroy-environment:
-                stacks-ID: '1'
+                stacks-ID: '{{ .Environment.CIRCLE_WORKFLOW_ID }}'
       - run:
           name: run server
           working_directory: .circleci/ansible/
