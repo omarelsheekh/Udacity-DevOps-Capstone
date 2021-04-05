@@ -53,18 +53,18 @@ jobs:
                 command: |
                   aws cloudformation deploy \
                     --template-file .circleci/cloudformation/server.yml \
-                    --stack-name "server-stack-{{ .Environment.CIRCLE_WORKFLOW_ID }}" \
-                    --parameter-overrides ID={{ .Environment.CIRCLE_WORKFLOW_ID }}  
+                    --stack-name "server-stack-$CIRCLE_WORKFLOW_ID" \
+                    --parameter-overrides ID=$CIRCLE_WORKFLOW_ID  
             - run:
                 name: Add back-end ip to ansible inventory
                 command: |
                   aws ec2 describe-instances \
-                    --filters "Name=tag:Name,Values=server-{{ .Environment.CIRCLE_WORKFLOW_ID }}" \
+                    --filters "Name=tag:Name,Values=server-$CIRCLE_WORKFLOW_ID" \
                     --query 'Reservations[*].Instances[*].PublicDnsName' \
                     --output text >> .circleci/ansible/inventory.txt
                   cat .circleci/ansible/inventory.txt
             - destroy-environment:
-                stacks-ID: '{{ .Environment.CIRCLE_WORKFLOW_ID }}'
+                stacks-ID: $CIRCLE_WORKFLOW_ID
       - save_cache:
           paths: [".circleci/ansible/inventory.txt"]
           key: inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -97,7 +97,7 @@ jobs:
                 command: |
                   ansible-playbook -i inventory.txt deploy-cluster.yml 
             - destroy-environment:
-                stacks-ID: '{{ .Environment.CIRCLE_WORKFLOW_ID }}'
+                stacks-ID: $CIRCLE_WORKFLOW_ID
       - run:
           name: run server
           working_directory: .circleci/ansible/
