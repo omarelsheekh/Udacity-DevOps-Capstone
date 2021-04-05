@@ -27,3 +27,12 @@
 
 - name: install helm
   shell: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+- name: install pip
+  shell: |
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    python3 get-pip.py
+
+- name: install ansible k8s dependancies
+  pip: 
+    name: [openshift, PyYAML]

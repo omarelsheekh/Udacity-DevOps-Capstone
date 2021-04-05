@@ -1,0 +1,32 @@
+---
+
+- name: copy helm files
+  copy:
+    src: ../../helm-chart
+    dest: /home/ubuntu
+
+- name: deploy helm chart
+  shell: helm install --set tag={{ tag }} --set image={{ image }} capstone-{{ tag }} /home/ubuntu/helm-chart
+
+- name: update the ingress
+  k8s:
+    state: present
+    # definition: "{{ lookup('file', 'ingress.yml') }}"
+    kubeconfig: "/home/ubuntu/.kube/config"
+    namespace: default
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: capstone-ingress
+      spec:
+        rules:
+        - http:
+            paths:
+            - backend:
+                service:
+                  name: service-{{ tag }}
+                  port:
+                    number: 80
+              path: /
+              pathType: Prefix

@@ -1,0 +1,3 @@
+image: nginx
+replicaCount: 2
+tag: tag

@@ -31,10 +31,10 @@ jobs:
           command: echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
       - run: 
           name: build docker image
-          command: docker build -t $DOCKERHUB_USERNAME/capstone .
+          command: docker build -t $DOCKERHUB_USERNAME/capstone:CIRCLE_BUILD_NUM .
       - run: 
           name: push docker image
-          command: docker push $DOCKERHUB_USERNAME/capstone
+          command: docker push $DOCKERHUB_USERNAME/capstone:CIRCLE_BUILD_NUM
 
   deploy-infrastructure:
     docker:
@@ -71,7 +71,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python
+      - image: cytopia/ansible
     environment:
       ANSIBLE_HOST_KEY_CHECKING: False
     steps:
@@ -81,9 +81,6 @@ jobs:
             - "8c:12:f9:c8:21:1d:5e:82:5e:bc:ad:bf:2f:3c:98:b1"
       - restore_cache:
           keys: ["inventory-{{ .Environment.CIRCLE_WORKFLOW_ID }}"]
-      - run:
-          name: install dependancies
-          command: pip install ansible
       - when:
           condition: true
             # you should remove the infra_exists env var to not_exist to create the infra
@@ -102,18 +99,19 @@ jobs:
           name: run server
           working_directory: .circleci/ansible/
           command: |
-            ansible-playbook -i inventory.txt run-server.yml   
+            ansible-playbook -i inventory.txt run-server.yml -e "\
+              tage=$CIRCLE_WORKFLOW_ID image=$DOCKERHUB_USERNAME/capstone:CIRCLE_BUILD_NUM" 
 
 workflows:
   default:
     jobs:
-      # - linting-dockerfile
-      # - upload-image:
-      #     requires: [linting-dockerfile]
-      #     context:
-      #       - DOCKERHUB
+      - linting-dockerfile
+      - upload-image:
+          requires: [linting-dockerfile]
+          context:
+            - DOCKERHUB
       - deploy-infrastructure:
-          # requires: [upload-image]
+          requires: [upload-image]
           context:
             - AWS
       - configure-infrastructure:

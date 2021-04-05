@@ -8,3 +8,7 @@
 - name: start minikube cluster
   become: False
   shell: minikube start
+
+- name: enable the NGINX Ingress controller
+  become: False
+  shell: minikube addons enable ingress
