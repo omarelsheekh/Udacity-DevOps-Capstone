@@ -31,10 +31,10 @@ jobs:
           command: echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
       - run: 
           name: build docker image
-          command: docker build -t "$DOCKERHUB_USERNAME/capstone:$CIRCLE_BUILD_NUM" .
+          command: docker build -t "$DOCKERHUB_USERNAME/capstone:${CIRCLE_SHA1:0:7}" .
       - run: 
           name: push docker image
-          command: docker push "$DOCKERHUB_USERNAME/capstone:$CIRCLE_BUILD_NUM"
+          command: docker push "$DOCKERHUB_USERNAME/capstone:${CIRCLE_SHA1:0:7}"
 
   deploy-infrastructure:
     docker:
@@ -101,7 +101,7 @@ jobs:
           command: |
             ansible-playbook -i inventory.txt run-server.yml -e "\
             tag=$CIRCLE_WORKFLOW_ID \
-            image="$DOCKERHUB_USERNAME/capstone:$CIRCLE_BUILD_NUM"\
+            image="$DOCKERHUB_USERNAME/capstone:${CIRCLE_SHA1:0:7}"\
             " 
 
 workflows:
