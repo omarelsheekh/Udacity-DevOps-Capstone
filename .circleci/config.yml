@@ -118,3 +118,5 @@ workflows:
             - AWS
       - configure-infrastructure:
           requires: [deploy-infrastructure]
+          context:
+            - DOCKERHUB
